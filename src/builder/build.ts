@@ -1,29 +1,34 @@
+import { compilePage } from "../compiler/compiler.js";
 import { scanContentFolder } from "../filesystem/scan.js";
 import { parseMarkdown } from "../parser/parse.js";
+import { renderPage } from "../renderer/renderer.js";
+import { routePage } from "../router/router.js";
+import { writePage } from "../writer/writer.js";
 
 export async function buildSite(): Promise<void> {
-    console.log("==================================");
-    console.log("🚀 Forge Static Site Generator");
-    console.log("==================================\n");
+    console.log("🚀 Starting Forge...\n");
 
-    console.log("📂 Scanning content folder...\n");
-
+    // 1. Discover files
     const files = scanContentFolder();
 
     if (files.length === 0) {
-        console.log("⚠️  No markdown files found.");
+        console.log("⚠️ No markdown files found.");
         return;
     }
 
-    console.log(`✅ Found ${files.length} markdown file(s):\n`);
-
-    files.forEach((file, index) => {
-        console.log(`${index + 1}. ${file}`);
-    });
-
-    console.log("\n🎉 Build pipeline initialized.");
+    console.log(`📄 Found ${files.length} markdown file(s).\n`);
 
     const pages = files.map(parseMarkdown);
-    
-    console.log(JSON.stringify(pages, null, 2));
+
+    const compiled = pages.map(compilePage);
+
+    const rendered = compiled.map(renderPage);
+
+    const routed = compiled.map((page, index) =>
+        routePage(page, rendered[index]!)
+    );
+
+    routed.forEach(writePage);
+
+    console.log("\n✅ Build Complete.");
 }

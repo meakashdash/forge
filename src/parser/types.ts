@@ -4,9 +4,7 @@ export interface Page {
   date: string;
   tags: string[];
 
-  content: string;      
-
-  html: string;        
+  content: string;         
 
   filePath: string;
   slug: string;
